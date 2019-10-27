@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>Francisco Costa | Exponential Backoff</title>
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/skeleton.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="stylesheet" href="/css/ph.css">
+    <script src="/assets/ph.js" type="text/javascript"></script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="nav-bar">
+    <div class="container">
+        <a href="/">Francisco Costa</a>
+        <a href="https://www.patreon.com/bePatron?u=3601517"><img class="u-pull-right" src="/assets/patreon.png"></a>
+    </div>
+</div>
+
+    <div class="container">
+        
+
+<h1 id="exponential-backoff">Exponential Backoff</h1>
+
+<p>This algorithm allows us to retry an operation, gradually increasing the time between repeats.</p>
+
+<p>For example, if we&rsquo;re trying to do a network call from a client, but the server is temporarily down, maybe we&rsquo;ll want to wait a couple of seconds and try again. If that fails, then we&rsquo;ll want to wait a bit longer before retrying, so we don&rsquo;t overload the server with even more calls.</p>
+
+<p>The standard <strong>Truncated Exponential Backoff</strong> algorithm looks like this:</p>
+
+<ul>
+<li>The base delay time is given by <code>2ˆn</code>, where <code>n</code> is the iteration number</li>
+<li>Some random fraction of a second is added to introduce some jitter</li>
+<li>The total delay is truncated to some max value</li>
+</ul>
+
+<blockquote>
+<p><strong>Note:</strong> Adding a bit of jitter is often useful because if we have a number of calls failing at exactly the same time, we don&rsquo;t want the retries to be synchronized as well. In the client/server example this will help ease some of the load when the server is back online.</p>
+</blockquote>
+
+<p>Let&rsquo;s do this in <strong>Swift</strong>. Calculating the delay time in milliseconds:</p>
+<div class="highlight"><pre class="chroma"><code class="language-swift" data-lang="swift"><span class="kd">func</span> <span class="nf">getDelay</span><span class="p">(</span><span class="k">for</span> <span class="n">n</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nb">Int</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nv">maxDelay</span> <span class="p">=</span> <span class="mi">300000</span> <span class="c1">// 5 minutes</span>
+    <span class="kd">let</span> <span class="nv">delay</span> <span class="p">=</span> <span class="nb">Int</span><span class="p">(</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="nb">Double</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">1000</span>
+    <span class="kd">let</span> <span class="nv">jitter</span> <span class="p">=</span> <span class="nb">Int</span><span class="p">.</span><span class="n">random</span><span class="p">(</span><span class="k">in</span><span class="p">:</span> <span class="mf">0.</span><span class="p">..</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">min</span><span class="p">(</span><span class="n">delay</span> <span class="o">+</span> <span class="n">jitter</span><span class="p">,</span> <span class="n">maxDelay</span><span class="p">)</span>
+<span class="p">}</span></code></pre></div>
+<p>We can then use GCD&rsquo;s <code>asyncAfter</code> to execute our closure on a <code>DispatchQueue</code>:</p>
+<div class="highlight"><pre class="chroma"><code class="language-swift" data-lang="swift"><span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="n">on</span> <span class="n">queue</span><span class="p">:</span> <span class="n">DispatchQueue</span><span class="p">,</span> <span class="n">retry</span><span class="p">:</span> <span class="nb">Int</span> <span class="p">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="p">@</span><span class="n">escaping</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="nb">Void</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nv">delay</span> <span class="p">=</span> <span class="n">getDelay</span><span class="p">(</span><span class="k">for</span><span class="p">:</span> <span class="n">retry</span><span class="p">)</span>
+    <span class="n">queue</span><span class="p">.</span><span class="n">asyncAfter</span><span class="p">(</span>
+        <span class="n">deadline</span><span class="p">:</span> <span class="n">DispatchTime</span><span class="p">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="p">.</span><span class="n">milliseconds</span><span class="p">(</span><span class="n">delay</span><span class="p">),</span>
+        <span class="n">execute</span><span class="p">:</span> <span class="n">closure</span><span class="p">)</span>
+<span class="p">}</span></code></pre></div>
+<p>GCD doesn&rsquo;t guarantee that <code>asyncAfter</code>  will execute our closure at an exact time, only that it will be <strong>after</strong> the delay. This makes the best use of the system&rsquo;s resources and for most use cases this is precisely what we want. If your use case requires accurate timing, use <code>NSTimer</code> instead.</p>
+
+    </div>
+    <div class="separator"></div>
+<div class="container footer">
+    If you'd like to support my work, you can <a href="https://www.patreon.com/bePatron?u=3601517">become a patron</a>. Read about <a href="/mission">my mission</a>.
+</div>
+
+</body>
+</html>

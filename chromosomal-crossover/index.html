@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>Francisco Costa | Chromosomal Crossover</title>
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/skeleton.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="stylesheet" href="/css/ph.css">
+    <script src="/assets/ph.js" type="text/javascript"></script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="nav-bar">
+    <div class="container">
+        <a href="/">Francisco Costa</a>
+        <a href="https://www.patreon.com/bePatron?u=3601517"><img class="u-pull-right" src="/assets/patreon.png"></a>
+    </div>
+</div>
+
+    <div class="container">
+        
+
+<h1 id="chromosomal-crossover">Chromosomal Crossover</h1>
+
+<p>On a <a href="/genetic-algorithms">genetic algorithm</a>, chromosomal crossover is the process of combining two chromosomes into a new one, similarly to what happens in <a href="https://en.wikipedia.org/wiki/Chromosomal_crossover">Biology</a>.</p>
+
+<p>There are several ways to implement this, and which one is the best will depend on the use case. Let&rsquo;s look at some of the most common.</p>
+
+<h3 id="single-point-crossover">Single-point crossover</h3>
+
+<p>If our chromosomes are arrays of genes, we can define a random index, the <strong>crossover point</strong>, and combine both arrays with elements from the first one, where <code>index &lt;= crossoverPoint</code>, and the elements of the second one, where <code>index &gt; crossoverPoint</code>.</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>g<sub>0</sub></th>
+<th>g<sub>1</sub></th>
+<th>g<sub>2</sub></th>
+<th></th>
+<th>g<sub>3</sub></th>
+<th>g<sub>4</sub></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Individual A</td>
+<td><strong>0</strong></td>
+<td><strong>1</strong></td>
+<td><strong>0</strong></td>
+<td></td>
+<td>1</td>
+<td>1</td>
+</tr>
+
+<tr>
+<td>Individual B</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>0</strong></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>Crossover point</strong></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>Offspring A + B</td>
+<td><strong>0</strong></td>
+<td><strong>1</strong></td>
+<td><strong>0</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p>In this example, the offspring got the genes g<sub>0</sub>, g<sub>1</sub> and g<sub>2</sub> from Individual A, and genes g<sub>3</sub> and g<sub>4</sub> from Individual B.</p>
+
+<h3 id="k-point-crossover">K-point crossover</h3>
+
+<p>Single-point crossover may result in greater gene entanglement at the edges of the chromosome, since most of the time they will be inherited together. A variation of the technique introduces multiple crossover points, making for a more uniform randomization.</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>g<sub>0</sub></th>
+<th></th>
+<th>g<sub>1</sub></th>
+<th>g<sub>2</sub></th>
+<th></th>
+<th>g<sub>3</sub></th>
+<th>g<sub>4</sub></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Individual A</td>
+<td><strong>0</strong></td>
+<td></td>
+<td>1</td>
+<td>0</td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>1</strong></td>
+</tr>
+
+<tr>
+<td>Individual B</td>
+<td>1</td>
+<td></td>
+<td><strong>0</strong></td>
+<td><strong>1</strong></td>
+<td></td>
+<td>1</td>
+<td>0</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td><strong>Crossover point</strong></td>
+<td></td>
+<td></td>
+<td><strong>Crossover point</strong></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>Offspring A + B</td>
+<td><strong>0</strong></td>
+<td></td>
+<td><strong>0</strong></td>
+<td><strong>1</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>1</strong></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="uniform-crossover">Uniform crossover</h3>
+
+<p>With uniform crossover each offspring gene is inherited from either chromosome with equal probability. This approach is most useful when we do not need to preserve the ordering of the genes.</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>g<sub>0</sub></th>
+<th>g<sub>1</sub></th>
+<th>g<sub>2</sub></th>
+<th>g<sub>3</sub></th>
+<th>g<sub>4</sub></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Individual A</td>
+<td><strong>0</strong></td>
+<td>1</td>
+<td><strong>0</strong></td>
+<td>1</td>
+<td><strong>1</strong></td>
+</tr>
+
+<tr>
+<td>Individual B</td>
+<td>1</td>
+<td><strong>0</strong></td>
+<td>1</td>
+<td><strong>1</strong></td>
+<td>0</td>
+</tr>
+
+<tr>
+<td>Offspring A + B</td>
+<td><strong>0</strong></td>
+<td><strong>0</strong></td>
+<td><strong>0</strong></td>
+<td><strong>1</strong></td>
+<td><strong>1</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p>This also opens the possibility of <strong>combining</strong> corresponding genes, rather than selecting either one. For example, if we have two genes with continuous values, the combined gene can be given by their average or a randomly weighted mean.</p>
+
+    </div>
+    <div class="separator"></div>
+<div class="container footer">
+    If you'd like to support my work, you can <a href="https://www.patreon.com/bePatron?u=3601517">become a patron</a>. Read about <a href="/mission">my mission</a>.
+</div>
+
+</body>
+</html>
